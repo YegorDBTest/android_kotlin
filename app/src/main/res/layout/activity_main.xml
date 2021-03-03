@@ -8,7 +8,7 @@
 
     <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="250dp"
         tools:ignore="MissingConstraints">
 
         <LinearLayout
@@ -16,41 +16,65 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:padding="15dp">
 
                 <TextView
                     android:id="@+id/text1"
-                    android:layout_width="wrap_content"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:text="Hello, I am a TextView" />
+                    android:padding="10dp"
+                    android:text="Jdufhr akjsu hru jwa jdfhuas." />
 
                 <Button
-                    android:id="@+id/button1"
-                    android:layout_width="221dp"
-                    android:layout_height="500dp"
-                    android:text="Hello, I am a Button" />
-            </LinearLayout>
+                    android:id="@+id/button1_1"
+                    android:layout_width="150dp"
+                    android:layout_height="100dp"
+                    android:layout_below="@id/text1"
+                    android:layout_alignParentRight="true"
+                    android:text="Button 1" />
 
-            <LinearLayout
+                <Button
+                    android:id="@+id/button2_1"
+                    android:layout_width="200dp"
+                    android:layout_height="100dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_below="@id/text1"
+                    android:layout_toLeftOf="@+id/button1_1"
+                    android:text="Button 2" />
+            </RelativeLayout>
+
+            <RelativeLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:padding="15dp">
 
                 <TextView
                     android:id="@+id/text2"
-                    android:layout_width="wrap_content"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:text="Hello, I am a TextView" />
+                    android:padding="10dp"
+                    android:text="Jdufhr akjsu hru jwa jdfhuas." />
 
                 <Button
-                    android:id="@+id/button2"
-                    android:layout_width="221dp"
-                    android:layout_height="500dp"
-                    android:text="Hello, I am a Button" />
-            </LinearLayout>
+                    android:id="@+id/button1_2"
+                    android:layout_width="150dp"
+                    android:layout_height="100dp"
+                    android:layout_below="@id/text2"
+                    android:layout_alignParentRight="true"
+                    android:text="Button 1" />
+
+                <Button
+                    android:id="@+id/button2_2"
+                    android:layout_width="200dp"
+                    android:layout_height="100dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_below="@id/text2"
+                    android:layout_toLeftOf="@+id/button1_2"
+                    android:text="Button 2" />
+            </RelativeLayout>
 
         </LinearLayout>
     </ScrollView>

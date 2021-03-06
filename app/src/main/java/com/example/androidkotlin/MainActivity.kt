@@ -2,11 +2,17 @@ package com.example.androidkotlin
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.setPadding
+import org.java_websocket.client.WebSocketClient
+import org.java_websocket.handshake.ServerHandshake
+import java.lang.Exception
+import java.net.URI
+import javax.net.ssl.SSLSocketFactory
 import kotlin.math.roundToInt
 
 
@@ -17,6 +23,38 @@ fun dpToPx(dp: Int, context: Context): Int {
 
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var webSocketClient: WebSocketClient
+
+    private fun sendMessage() {
+        webSocketClient.send("lol")
+    }
+
+    private fun initWebSocket() {
+//        val uri = URI("wss://echo.websocket.org/")
+        val uri = URI("ws://echo.websocket.org/")
+        webSocketClient = object : WebSocketClient(uri) {
+            override fun onOpen(handshakedata: ServerHandshake?) {
+                Log.d("TEST_TAG", "onOpen")
+                sendMessage()
+            }
+
+            override fun onMessage(message: String?) {
+                Log.d("TEST_TAG", "onMessage: $message")
+            }
+
+            override fun onClose(code: Int, reason: String?, remote: Boolean) {
+                Log.d("TEST_TAG", "onClose, code: $code")
+            }
+
+            override fun onError(ex: Exception?) {
+                Log.e("TEST_TAG", "onError: ${ex?.message}")
+            }
+        }
+//        val socketFactory: SSLSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
+//        webSocketClient.setSocketFactory(socketFactory)
+        webSocketClient.connect()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -42,5 +80,15 @@ class MainActivity : AppCompatActivity() {
 
         rl.addView(tv);
         wrapper.addView(rl);
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initWebSocket()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        webSocketClient.close()
     }
 }

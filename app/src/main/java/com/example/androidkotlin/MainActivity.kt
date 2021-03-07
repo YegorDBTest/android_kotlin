@@ -30,8 +30,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initWebSocket() {
-//        val uri = URI("wss://echo.websocket.org/")
-        val uri = URI("ws://echo.websocket.org/")
+        val uri = URI("wss://echo.websocket.org/")
         webSocketClient = object : WebSocketClient(uri) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 Log.d("TEST_TAG", "onOpen")
@@ -43,15 +42,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                Log.d("TEST_TAG", "onClose, code: $code")
+                Log.d("TEST_TAG", "onClose, code: $code, reason $reason")
             }
 
             override fun onError(ex: Exception?) {
                 Log.e("TEST_TAG", "onError: ${ex?.message}")
             }
         }
-//        val socketFactory: SSLSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
-//        webSocketClient.setSocketFactory(socketFactory)
+        val socketFactory: SSLSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
+        webSocketClient.setSocketFactory(socketFactory)
         webSocketClient.connect()
     }
 

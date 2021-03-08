@@ -8,6 +8,10 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.setPadding
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.lang.Exception
@@ -77,8 +81,19 @@ class MainActivity : AppCompatActivity() {
         tv.setPadding(dpToPx(10, this))
         tv.text = "Lol"
 
-        rl.addView(tv);
-        wrapper.addView(rl);
+        rl.addView(tv)
+        wrapper.addView(rl)
+
+        val queue = Volley.newRequestQueue(this)
+        val url = "https://www.google.com"
+        val respL = Response.Listener<String> { response ->
+            Log.d("TEST_TAG", "Response is: ${response.substring(0, 50)}")
+        }
+        val respEL = Response.ErrorListener {
+            Log.e("TEST_TAG", "That didn't work!")
+        }
+        val stringRequest = StringRequest(Request.Method.GET, url, respL, respEL)
+        queue.add(stringRequest)
     }
 
     override fun onResume() {

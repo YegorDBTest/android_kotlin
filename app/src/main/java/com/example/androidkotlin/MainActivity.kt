@@ -3,9 +3,7 @@ package com.example.androidkotlin
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.setPadding
 import com.android.volley.Request
@@ -84,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         rl.addView(tv)
         wrapper.addView(rl)
 
+
         val queue = Volley.newRequestQueue(this)
         val url = "https://www.google.com"
         val respL = Response.Listener<String> { response ->
@@ -94,6 +93,22 @@ class MainActivity : AppCompatActivity() {
         }
         val stringRequest = StringRequest(Request.Method.GET, url, respL, respEL)
         queue.add(stringRequest)
+
+
+        val searchText: SearchView = findViewById(R.id.searchView)
+        searchText.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (query == null) return false
+                Log.d("TEST_TAG", "Search query is: $query")
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText == null) return false
+                Log.d("TEST_TAG", "Search text is: $newText")
+                return true
+            }
+        })
     }
 
     override fun onResume() {

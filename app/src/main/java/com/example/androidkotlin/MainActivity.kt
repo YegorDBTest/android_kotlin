@@ -8,10 +8,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.setPadding
 import com.android.volley.Request
 import com.android.volley.Response
-import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
+import org.json.JSONObject
 import java.lang.Exception
 import java.net.URI
 import javax.net.ssl.SSLSocketFactory
@@ -84,21 +85,23 @@ class MainActivity : AppCompatActivity() {
 
 
         val queue = Volley.newRequestQueue(this)
-        val url = "https://www.google.com"
-        val respL = Response.Listener<String> { response ->
-            Log.d("TEST_TAG", "Response is: ${response.substring(0, 50)}")
-        }
-        val respEL = Response.ErrorListener {
-            Log.e("TEST_TAG", "That didn't work!")
-        }
-        val stringRequest = StringRequest(Request.Method.GET, url, respL, respEL)
-        queue.add(stringRequest)
 
 
         val searchText: SearchView = findViewById(R.id.searchView)
         searchText.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query == null) return false
+
+                val url = "https://httpbin.org/get?query=$query"
+                val respL = Response.Listener<JSONObject> { response ->
+                    Log.d("TEST_TAG", "Response is: $response")
+                }
+                val respEL = Response.ErrorListener {
+                    Log.e("TEST_TAG", "That didn't work!")
+                }
+                val req = JsonObjectRequest(Request.Method.GET, url, null, respL, respEL)
+                queue.add(req)
+
                 Log.d("TEST_TAG", "Search query is: $query")
                 return true
             }

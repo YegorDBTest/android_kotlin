@@ -3,9 +3,15 @@ package com.example.androidkotlin
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.setPadding
+import androidx.fragment.app.Fragment
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
@@ -22,6 +28,24 @@ import kotlin.math.roundToInt
 fun dpToPx(dp: Int, context: Context): Int {
     val density: Float = context.getResources().getDisplayMetrics().density
     return (dp.toFloat() * density).roundToInt()
+}
+
+
+class MainFragmentItem : Fragment() {
+
+    override fun onCreateView(
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
+    ): View = inflater.inflate(R.layout.main_fragment, container, false)
+}
+
+
+class MainFragmentAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
+
+    override fun getItemCount(): Int = 2
+
+    override fun createFragment(position: Int): Fragment = MainFragmentItem()
 }
 
 
@@ -112,6 +136,9 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         })
+
+        val viewPager: ViewPager2 = findViewById(R.id.pager)
+        viewPager.adapter = MainFragmentAdapter(this)
     }
 
     override fun onResume() {

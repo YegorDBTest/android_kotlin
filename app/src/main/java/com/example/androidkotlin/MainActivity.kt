@@ -40,6 +40,30 @@ class MainFragmentFirst : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.main_fragment_first, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val wrapper: LinearLayout = view.findViewById(R.id.linearLayout1)
+
+        val rl = RelativeLayout(view.context)
+        val rlParams = RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT,
+        )
+        rl.layoutParams = rlParams
+        rl.setPadding(dpToPx(15, view.context))
+
+        val tv = TextView(view.context)
+        val tvParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+        )
+        tv.layoutParams = tvParams
+        tv.setPadding(dpToPx(10, view.context))
+        tv.text = "Lol"
+
+        rl.addView(tv)
+        wrapper.addView(rl)
+    }
 }
 
 
@@ -105,31 +129,7 @@ class MainActivity : AppCompatActivity() {
 
         supportActionBar?.hide()
 
-//        val wrapper: LinearLayout = findViewById(R.id.linearLayout1)
-//
-//        val rl = RelativeLayout(this)
-//        val rlParams = RelativeLayout.LayoutParams(
-//                RelativeLayout.LayoutParams.MATCH_PARENT,
-//                RelativeLayout.LayoutParams.WRAP_CONTENT,
-//        )
-//        rl.layoutParams = rlParams
-//        rl.setPadding(dpToPx(15, this))
-//
-//        val tv = TextView(this)
-//        val tvParams = LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.MATCH_PARENT,
-//                LinearLayout.LayoutParams.WRAP_CONTENT,
-//        )
-//        tv.layoutParams = tvParams
-//        tv.setPadding(dpToPx(10, this))
-//        tv.text = "Lol"
-//
-//        rl.addView(tv)
-//        wrapper.addView(rl)
-
-
         val queue = Volley.newRequestQueue(this)
-
 
         val searchText: SearchView = findViewById(R.id.searchView)
         searchText.setOnQueryTextListener(object : SearchView.OnQueryTextListener {

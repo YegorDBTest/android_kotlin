@@ -33,21 +33,37 @@ fun dpToPx(dp: Int, context: Context): Int {
 }
 
 
-class MainFragmentItem : Fragment() {
+class MainFragmentFirst : Fragment() {
 
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.main_fragment, container, false)
+    ): View = inflater.inflate(R.layout.main_fragment_first, container, false)
+}
+
+
+class MainFragmentSecond : Fragment() {
+
+    override fun onCreateView(
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
+    ): View = inflater.inflate(R.layout.main_fragment_second, container, false)
 }
 
 
 class MainFragmentAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
+    val fragments = listOf(
+            FragmentItem("first", MainFragmentFirst()),
+            FragmentItem("second", MainFragmentSecond()),
+    )
 
-    override fun getItemCount(): Int = 2
+    override fun getItemCount(): Int = fragments.size
 
-    override fun createFragment(position: Int): Fragment = MainFragmentItem()
+    override fun createFragment(position: Int): Fragment = fragments[position].fragment
+
+    data class FragmentItem(val tabName: String, val fragment: Fragment)
 }
 
 
@@ -87,27 +103,29 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val wrapper: LinearLayout = findViewById(R.id.linearLayout1)
+        supportActionBar?.hide()
 
-        val rl = RelativeLayout(this)
-        val rlParams = RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT,
-        )
-        rl.layoutParams = rlParams
-        rl.setPadding(dpToPx(15, this))
-
-        val tv = TextView(this)
-        val tvParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-        )
-        tv.layoutParams = tvParams
-        tv.setPadding(dpToPx(10, this))
-        tv.text = "Lol"
-
-        rl.addView(tv)
-        wrapper.addView(rl)
+//        val wrapper: LinearLayout = findViewById(R.id.linearLayout1)
+//
+//        val rl = RelativeLayout(this)
+//        val rlParams = RelativeLayout.LayoutParams(
+//                RelativeLayout.LayoutParams.MATCH_PARENT,
+//                RelativeLayout.LayoutParams.WRAP_CONTENT,
+//        )
+//        rl.layoutParams = rlParams
+//        rl.setPadding(dpToPx(15, this))
+//
+//        val tv = TextView(this)
+//        val tvParams = LinearLayout.LayoutParams(
+//                LinearLayout.LayoutParams.MATCH_PARENT,
+//                LinearLayout.LayoutParams.WRAP_CONTENT,
+//        )
+//        tv.layoutParams = tvParams
+//        tv.setPadding(dpToPx(10, this))
+//        tv.text = "Lol"
+//
+//        rl.addView(tv)
+//        wrapper.addView(rl)
 
 
         val queue = Volley.newRequestQueue(this)
@@ -140,10 +158,11 @@ class MainActivity : AppCompatActivity() {
         })
 
         val viewPager: ViewPager2 = findViewById(R.id.pager)
-        viewPager.adapter = MainFragmentAdapter(this)
+        val adapter = MainFragmentAdapter(this)
+        viewPager.adapter = adapter
         val tabLayout: TabLayout = findViewById(R.id.tabLayout)
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            tab.text = "TAB ${(position + 1)}"
+            tab.text = adapter.fragments[position].tabName
         }.attach()
     }
 

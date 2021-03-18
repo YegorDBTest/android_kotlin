@@ -164,6 +164,8 @@ class MainActivity : AppCompatActivity() {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = adapter.fragments[position].tabName
         }.attach()
+
+        this.onSearchRequested()
     }
 
     override fun onResume() {

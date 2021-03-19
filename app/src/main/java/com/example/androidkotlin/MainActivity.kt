@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -126,8 +127,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        supportActionBar?.hide()
+        setSupportActionBar(findViewById(R.id.toolbar1))
 
         val queue = Volley.newRequestQueue(this)
 
@@ -166,6 +166,11 @@ class MainActivity : AppCompatActivity() {
         }.attach()
 
         this.onSearchRequested()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main, menu)
+        return true
     }
 
     override fun onResume() {

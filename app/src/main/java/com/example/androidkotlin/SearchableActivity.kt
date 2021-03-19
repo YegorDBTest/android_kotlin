@@ -14,6 +14,17 @@ class SearchableActivity : AppCompatActivity() {
 
         supportActionBar?.hide()
 
+        handleIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        val result = super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+        return result
+    }
+
+    private fun handleIntent(intent: Intent) {
         if (Intent.ACTION_SEARCH == intent.action) {
             intent.getStringExtra(SearchManager.QUERY)?.also { query ->
                 Log.d("TEST_TAG", "query $query")

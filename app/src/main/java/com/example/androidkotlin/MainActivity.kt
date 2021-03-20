@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
@@ -25,6 +27,26 @@ import kotlin.math.roundToInt
 fun dpToPx(dp: Int, context: Context): Int {
     val density: Float = context.getResources().getDisplayMetrics().density
     return (dp.toFloat() * density).roundToInt()
+}
+
+
+class MyAdapter(private val numbers: List<Int>): RecyclerView.Adapter<MyAdapter.MyViewHolder>() {
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+        val itemLayoutView: View =  LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_layout, null)
+        return MyViewHolder(itemLayoutView)
+    }
+
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+        holder.itemTitle.text = numbers[position].toString()
+    }
+
+    override fun getItemCount(): Int = numbers.size
+
+    class MyViewHolder(itemLayoutView: View): RecyclerView.ViewHolder(itemLayoutView) {
+        val itemTitle: TextView = itemLayoutView.findViewById(R.id.item_title)
+    }
 }
 
 
@@ -69,6 +91,14 @@ class MainFragmentSecond : Fragment() {
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.main_fragment_second, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view2)
+        val layoutManager: RecyclerView.LayoutManager  = LinearLayoutManager(view.context)
+        recyclerView.layoutManager = layoutManager;
+        val adapter: RecyclerView.Adapter<MyAdapter.MyViewHolder> = MyAdapter((50..70).toList())
+        recyclerView.adapter = adapter;
+    }
 }
 
 

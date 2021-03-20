@@ -35,7 +35,7 @@ class SearchableActivity : AppCompatActivity() {
     }
 
     private fun handleIntent(intent: Intent) {
-        if (Intent.ACTION_SEARCH == intent.action) {
+        if (intent.action == Intent.ACTION_SEARCH) {
             intent.getStringExtra(SearchManager.QUERY)?.also { query ->
                 Log.d("TEST_TAG", "Search query: $query")
                 val url = "https://httpbin.org/get?query=$query"

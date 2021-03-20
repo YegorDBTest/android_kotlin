@@ -3,12 +3,10 @@ package com.example.androidkotlin
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -129,10 +127,22 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar1))
 
-        val queue = Volley.newRequestQueue(this)
+        val viewPager: ViewPager2 = findViewById(R.id.pager)
+        val adapter = MainFragmentAdapter(this)
+        viewPager.adapter = adapter
+        val tabLayout: TabLayout = findViewById(R.id.tabLayout)
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = adapter.fragments[position].tabName
+        }.attach()
+    }
 
-        val searchText: SearchView = findViewById(R.id.searchView)
-        searchText.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main, menu)
+
+        val searchItem = menu?.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as SearchView
+        val queue = Volley.newRequestQueue(this)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query == null) return false
 
@@ -141,7 +151,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d("TEST_TAG", "Response is: $response")
                 }
                 val respEL = Response.ErrorListener {
-                    Log.e("TEST_TAG", "That didn't work!")
+                    Log.e("TEST_TAG", "That didn't work! ${it.message}")
                 }
                 val req = JsonObjectRequest(Request.Method.GET, url, null, respL, respEL)
                 queue.add(req)
@@ -157,20 +167,18 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        val viewPager: ViewPager2 = findViewById(R.id.pager)
-        val adapter = MainFragmentAdapter(this)
-        viewPager.adapter = adapter
-        val tabLayout: TabLayout = findViewById(R.id.tabLayout)
-        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            tab.text = adapter.fragments[position].tabName
-        }.attach()
-
-        this.onSearchRequested()
+        return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main, menu)
-        return true
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.action_search -> {
+            Log.d("TEST_TAG", "Search button pressed")
+            true
+        }
+
+        else -> {
+            super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onResume() {

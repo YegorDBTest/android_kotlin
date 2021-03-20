@@ -1,5 +1,6 @@
 package com.example.androidkotlin
 
+import android.app.SearchManager
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -11,15 +12,10 @@ import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.android.volley.Request
-import com.android.volley.Response
-import com.android.volley.toolbox.JsonObjectRequest
-import com.android.volley.toolbox.Volley
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
-import org.json.JSONObject
 import java.lang.Exception
 import java.net.URI
 import javax.net.ssl.SSLSocketFactory
@@ -141,44 +137,13 @@ class MainActivity : AppCompatActivity() {
 
         val searchItem = menu?.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as SearchView
-        val queue = Volley.newRequestQueue(this)
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if (query == null) return false
-
-                val url = "https://httpbin.org/get?query=$query"
-                val respL = Response.Listener<JSONObject> { response ->
-                    Log.d("TEST_TAG", "Response is: $response")
-                }
-                val respEL = Response.ErrorListener {
-                    Log.e("TEST_TAG", "That didn't work! ${it.message}")
-                }
-                val req = JsonObjectRequest(Request.Method.GET, url, null, respL, respEL)
-                queue.add(req)
-
-                Log.d("TEST_TAG", "Search query is: $query")
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText == null) return false
-                Log.d("TEST_TAG", "Search text is: $newText")
-                return true
-            }
-        })
+        val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        searchView.apply {
+            setSearchableInfo(searchManager.getSearchableInfo(componentName))
+            setIconifiedByDefault(false)
+        }
 
         return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_search -> {
-            Log.d("TEST_TAG", "Search button pressed")
-            true
-        }
-
-        else -> {
-            super.onOptionsItemSelected(item)
-        }
     }
 
     override fun onResume() {

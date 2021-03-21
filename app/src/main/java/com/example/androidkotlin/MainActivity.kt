@@ -8,7 +8,6 @@ import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,13 +20,46 @@ import org.java_websocket.handshake.ServerHandshake
 import java.lang.Exception
 import java.net.URI
 import javax.net.ssl.SSLSocketFactory
-import kotlin.math.roundToInt
 
 
 data class ItemData(var title: String, var description: String, var favorite: Boolean)
 
 
-class ItemsAdapter(private var itemsData: List<ItemData>): RecyclerView.Adapter<ItemsAdapter.ItemViewHolder>() {
+class ItemsManager {
+    private var _items = List(50) {
+        ItemData(it.toString(), (it + 100).toString(), it % 2 == 1)
+    }
+    private var itemsAdapters = mutableListOf<MainItemsAdapter>()
+
+    fun getMainItems(): List<ItemData> {
+        return _items
+    }
+
+    fun getFavoriteItems(): List<ItemData> {
+        return _items.filter { it.favorite }
+    }
+
+    fun addAdapter(adapter: MainItemsAdapter) {
+        itemsAdapters.add(adapter)
+    }
+
+    fun refreshAdapters() {
+        for (adapter in itemsAdapters) {
+            adapter.notifyDataSetChanged()
+        }
+    }
+}
+
+
+open class MainItemsAdapter(private var itemsManager: ItemsManager): RecyclerView.Adapter<MainItemsAdapter.ItemViewHolder>() {
+
+    init {
+        addToItemsHolder()
+    }
+
+    private fun addToItemsHolder() {
+        itemsManager.addAdapter(this)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         val itemLayoutView: View =  LayoutInflater.from(parent.context)
@@ -36,15 +68,19 @@ class ItemsAdapter(private var itemsData: List<ItemData>): RecyclerView.Adapter<
     }
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
-        holder.title.text = itemsData[position].title
-        holder.description.text = itemsData[position].description
-        holder.favorite.isChecked = itemsData[position].favorite
+        val item = getItems()[position]
+        holder.title.text = item.title
+        holder.description.text = item.description
+        holder.favorite.isChecked = item.favorite
         holder.favorite.setOnClickListener {
-            itemsData[position].favorite = holder.favorite.isChecked
+            item.favorite = holder.favorite.isChecked
+            itemsManager.refreshAdapters()
         }
     }
 
-    override fun getItemCount(): Int = itemsData.size
+    override fun getItemCount(): Int = getItems().size
+
+    open fun getItems(): List<ItemData> = itemsManager.getMainItems()
 
     class ItemViewHolder(itemLayoutView: View): RecyclerView.ViewHolder(itemLayoutView) {
         val title: TextView = itemLayoutView.findViewById(R.id.itemTitle)
@@ -54,7 +90,12 @@ class ItemsAdapter(private var itemsData: List<ItemData>): RecyclerView.Adapter<
 }
 
 
-class ItemsFragment(private val data: List<ItemData>) : Fragment() {
+class FavoriteItemsAdapter(private var itemsManager: ItemsManager): MainItemsAdapter(itemsManager) {
+    override fun getItems(): List<ItemData> = itemsManager.getFavoriteItems()
+}
+
+
+open class ItemsFragment(private val adapter: MainItemsAdapter) : Fragment() {
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -66,20 +107,15 @@ class ItemsFragment(private val data: List<ItemData>) : Fragment() {
         val recyclerView: RecyclerView = view.findViewById(R.id.itemsRecyclerView)
         val layoutManager: RecyclerView.LayoutManager  = LinearLayoutManager(view.context)
         recyclerView.layoutManager = layoutManager;
-        val adapter: RecyclerView.Adapter<ItemsAdapter.ItemViewHolder> = ItemsAdapter(data)
         recyclerView.adapter = adapter;
     }
 }
 
 
-class ItemsFragmentsAdapter(activity: MainActivity) : FragmentStateAdapter(activity) {
-    val fragments = listOf(
-            FragmentItem("first", ItemsFragment(List(20) {
-                ItemData((it * 10 + 1).toString(), (it * 100 + 1).toString(), it % 2 == 1)
-            })),
-            FragmentItem("second", ItemsFragment(List(20) {
-                ItemData((it * 10).toString(), (it * 100).toString(), it % 2 == 0)
-            })),
+class ItemsFragmentsAdapter(activity: MainActivity, itemsManager: ItemsManager) : FragmentStateAdapter(activity) {
+    var fragments = listOf(
+        FragmentItem("first", ItemsFragment(MainItemsAdapter(itemsManager))),
+        FragmentItem("second", ItemsFragment(FavoriteItemsAdapter(itemsManager))),
     )
 
     override fun getItemCount(): Int = fragments.size
@@ -128,7 +164,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar1))
 
         val viewPager: ViewPager2 = findViewById(R.id.pager)
-        val adapter = ItemsFragmentsAdapter(this)
+        val adapter = ItemsFragmentsAdapter(this, ItemsManager())
         viewPager.adapter = adapter
         val tabLayout: TabLayout = findViewById(R.id.tabLayout)
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->

@@ -24,13 +24,10 @@ import javax.net.ssl.SSLSocketFactory
 import kotlin.math.roundToInt
 
 
-fun dpToPx(dp: Int, context: Context): Int {
-    val density: Float = context.getResources().getDisplayMetrics().density
-    return (dp.toFloat() * density).roundToInt()
-}
+data class ItemData(var title: String, var description: String, var favorite: Boolean)
 
 
-class ItemsAdapter(private val itemsData: List<ItemData>): RecyclerView.Adapter<ItemsAdapter.ItemViewHolder>() {
+class ItemsAdapter(private var itemsData: List<ItemData>): RecyclerView.Adapter<ItemsAdapter.ItemViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         val itemLayoutView: View =  LayoutInflater.from(parent.context)
@@ -42,6 +39,9 @@ class ItemsAdapter(private val itemsData: List<ItemData>): RecyclerView.Adapter<
         holder.title.text = itemsData[position].title
         holder.description.text = itemsData[position].description
         holder.favorite.isChecked = itemsData[position].favorite
+        holder.favorite.setOnClickListener {
+            itemsData[position].favorite = holder.favorite.isChecked
+        }
     }
 
     override fun getItemCount(): Int = itemsData.size
@@ -52,43 +52,6 @@ class ItemsAdapter(private val itemsData: List<ItemData>): RecyclerView.Adapter<
         val favorite: ToggleButton = itemLayoutView.findViewById(R.id.itemFavorite)
     }
 }
-
-
-class MainFragmentFirst : Fragment() {
-
-    override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.main_fragment_first, container, false)
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val wrapper: LinearLayout = view.findViewById(R.id.linearLayout1)
-
-        val rl = RelativeLayout(view.context)
-        val rlParams = RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT,
-        )
-        rl.layoutParams = rlParams
-        rl.setPadding(dpToPx(15, view.context))
-
-        val tv = TextView(view.context)
-        val tvParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-        )
-        tv.layoutParams = tvParams
-        tv.setPadding(dpToPx(10, view.context))
-        tv.text = "Lol"
-
-        rl.addView(tv)
-        wrapper.addView(rl)
-    }
-}
-
-
-data class ItemData(var title: String, var description: String, var favorite: Boolean)
 
 
 class ItemsFragment(private val data: List<ItemData>) : Fragment() {
@@ -111,7 +74,9 @@ class ItemsFragment(private val data: List<ItemData>) : Fragment() {
 
 class ItemsFragmentsAdapter(activity: MainActivity) : FragmentStateAdapter(activity) {
     val fragments = listOf(
-            FragmentItem("first", MainFragmentFirst()),
+            FragmentItem("first", ItemsFragment(List(20) {
+                ItemData((it * 10 + 1).toString(), (it * 100 + 1).toString(), it % 2 == 1)
+            })),
             FragmentItem("second", ItemsFragment(List(20) {
                 ItemData((it * 10).toString(), (it * 100).toString(), it % 2 == 0)
             })),

@@ -30,22 +30,26 @@ fun dpToPx(dp: Int, context: Context): Int {
 }
 
 
-class MyAdapter(private val numbers: List<Int>): RecyclerView.Adapter<MyAdapter.MyViewHolder>() {
+class ItemsAdapter(private val itemsData: List<ItemData>): RecyclerView.Adapter<ItemsAdapter.ItemViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
         val itemLayoutView: View =  LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_layout, null)
-        return MyViewHolder(itemLayoutView)
+        return ItemViewHolder(itemLayoutView)
     }
 
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.itemTitle.text = numbers[position].toString()
+    override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
+        holder.title.text = itemsData[position].title
+        holder.description.text = itemsData[position].description
+        holder.favorite.isChecked = itemsData[position].favorite
     }
 
-    override fun getItemCount(): Int = numbers.size
+    override fun getItemCount(): Int = itemsData.size
 
-    class MyViewHolder(itemLayoutView: View): RecyclerView.ViewHolder(itemLayoutView) {
-        val itemTitle: TextView = itemLayoutView.findViewById(R.id.item_title)
+    class ItemViewHolder(itemLayoutView: View): RecyclerView.ViewHolder(itemLayoutView) {
+        val title: TextView = itemLayoutView.findViewById(R.id.itemTitle)
+        val description: TextView = itemLayoutView.findViewById(R.id.itemDescription)
+        val favorite: ToggleButton = itemLayoutView.findViewById(R.id.itemFavorite)
     }
 }
 
@@ -84,28 +88,33 @@ class MainFragmentFirst : Fragment() {
 }
 
 
-class MainFragmentSecond : Fragment() {
+data class ItemData(var title: String, var description: String, var favorite: Boolean)
+
+
+class ItemsFragment(private val data: List<ItemData>) : Fragment() {
 
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.main_fragment_second, container, false)
+    ): View = inflater.inflate(R.layout.items_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view2)
+        val recyclerView: RecyclerView = view.findViewById(R.id.itemsRecyclerView)
         val layoutManager: RecyclerView.LayoutManager  = LinearLayoutManager(view.context)
         recyclerView.layoutManager = layoutManager;
-        val adapter: RecyclerView.Adapter<MyAdapter.MyViewHolder> = MyAdapter((50..70).toList())
+        val adapter: RecyclerView.Adapter<ItemsAdapter.ItemViewHolder> = ItemsAdapter(data)
         recyclerView.adapter = adapter;
     }
 }
 
 
-class MainFragmentAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
+class ItemsFragmentsAdapter(activity: MainActivity) : FragmentStateAdapter(activity) {
     val fragments = listOf(
             FragmentItem("first", MainFragmentFirst()),
-            FragmentItem("second", MainFragmentSecond()),
+            FragmentItem("second", ItemsFragment(List(20) {
+                ItemData((it * 10).toString(), (it * 100).toString(), it % 2 == 0)
+            })),
     )
 
     override fun getItemCount(): Int = fragments.size
@@ -154,7 +163,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar1))
 
         val viewPager: ViewPager2 = findViewById(R.id.pager)
-        val adapter = MainFragmentAdapter(this)
+        val adapter = ItemsFragmentsAdapter(this)
         viewPager.adapter = adapter
         val tabLayout: TabLayout = findViewById(R.id.tabLayout)
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->

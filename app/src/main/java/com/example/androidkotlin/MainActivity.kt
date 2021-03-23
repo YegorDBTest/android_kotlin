@@ -26,12 +26,12 @@ data class ItemData(var title: String, var description: String, var favorite: Bo
 
 
 class ItemsManager {
-    private var _items = List(50) {
+    private var _items = MutableList(50) {
         ItemData(it.toString(), (it + 100).toString(), it % 2 == 1)
     }
     private var itemsAdapters = mutableListOf<MainItemsAdapter>()
 
-    fun getMainItems(): List<ItemData> {
+    fun getMainItems(): MutableList<ItemData> {
         return _items
     }
 
@@ -51,14 +51,14 @@ class ItemsManager {
 }
 
 
-open class MainItemsAdapter(private var itemsManager: ItemsManager): RecyclerView.Adapter<MainItemsAdapter.ItemViewHolder>() {
+open class MainItemsAdapter: RecyclerView.Adapter<MainItemsAdapter.ItemViewHolder>() {
 
     init {
         addToItemsHolder()
     }
 
     private fun addToItemsHolder() {
-        itemsManager.addAdapter(this)
+        MainActivity.itemsManager.addAdapter(this)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
@@ -74,13 +74,13 @@ open class MainItemsAdapter(private var itemsManager: ItemsManager): RecyclerVie
         holder.favorite.isChecked = item.favorite
         holder.favorite.setOnClickListener {
             item.favorite = holder.favorite.isChecked
-            itemsManager.refreshAdapters()
+            MainActivity.itemsManager.refreshAdapters()
         }
     }
 
     override fun getItemCount(): Int = getItems().size
 
-    open fun getItems(): List<ItemData> = itemsManager.getMainItems()
+    open fun getItems(): List<ItemData> = MainActivity.itemsManager.getMainItems()
 
     class ItemViewHolder(itemLayoutView: View): RecyclerView.ViewHolder(itemLayoutView) {
         val title: TextView = itemLayoutView.findViewById(R.id.itemTitle)
@@ -90,8 +90,8 @@ open class MainItemsAdapter(private var itemsManager: ItemsManager): RecyclerVie
 }
 
 
-class FavoriteItemsAdapter(private var itemsManager: ItemsManager): MainItemsAdapter(itemsManager) {
-    override fun getItems(): List<ItemData> = itemsManager.getFavoriteItems()
+class FavoriteItemsAdapter: MainItemsAdapter() {
+    override fun getItems(): List<ItemData> = MainActivity.itemsManager.getFavoriteItems()
 }
 
 
@@ -112,10 +112,10 @@ open class ItemsFragment(private val adapter: MainItemsAdapter) : Fragment() {
 }
 
 
-class ItemsFragmentsAdapter(activity: MainActivity, itemsManager: ItemsManager) : FragmentStateAdapter(activity) {
+class ItemsFragmentsAdapter(activity: MainActivity) : FragmentStateAdapter(activity) {
     var fragments = listOf(
-        FragmentItem("first", ItemsFragment(MainItemsAdapter(itemsManager))),
-        FragmentItem("second", ItemsFragment(FavoriteItemsAdapter(itemsManager))),
+        FragmentItem("first", ItemsFragment(MainItemsAdapter())),
+        FragmentItem("second", ItemsFragment(FavoriteItemsAdapter())),
     )
 
     override fun getItemCount(): Int = fragments.size
@@ -127,6 +127,11 @@ class ItemsFragmentsAdapter(activity: MainActivity, itemsManager: ItemsManager) 
 
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        val itemsManager = ItemsManager()
+    }
+
     private lateinit var webSocketClient: WebSocketClient
 
     private fun sendMessage() {
@@ -164,7 +169,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar1))
 
         val viewPager: ViewPager2 = findViewById(R.id.pager)
-        val adapter = ItemsFragmentsAdapter(this, ItemsManager())
+        val adapter = ItemsFragmentsAdapter(this)
         viewPager.adapter = adapter
         val tabLayout: TabLayout = findViewById(R.id.tabLayout)
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->

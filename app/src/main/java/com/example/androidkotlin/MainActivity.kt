@@ -25,21 +25,11 @@ import javax.net.ssl.SSLSocketFactory
 data class ItemData(var title: String, var description: String, var favorite: Boolean)
 
 
-class ItemsManager {
-    private var _items = MutableList(50) {
-        ItemData(it.toString(), (it + 100).toString(), it % 2 == 1)
-    }
-    private var itemsAdapters = mutableListOf<MainItemsAdapter>()
+abstract class BaseItemsManager {
 
-    fun getMainItems(): MutableList<ItemData> {
-        return _items
-    }
+    private var itemsAdapters = mutableListOf<BaseItemsAdapter>()
 
-    fun getFavoriteItems(): List<ItemData> {
-        return _items.filter { it.favorite }
-    }
-
-    fun addAdapter(adapter: MainItemsAdapter) {
+    fun addAdapter(adapter: BaseItemsAdapter) {
         itemsAdapters.add(adapter)
     }
 
@@ -51,7 +41,39 @@ class ItemsManager {
 }
 
 
-open class MainItemsAdapter: RecyclerView.Adapter<MainItemsAdapter.ItemViewHolder>() {
+class ItemsManager: BaseItemsManager() {
+
+    private var items = MutableList(50) {
+        ItemData(it.toString(), (it + 100).toString(), it % 2 == 1)
+    }
+
+    fun getMainItems(): MutableList<ItemData> {
+        return items
+    }
+
+    fun getFavoriteItems(): List<ItemData> {
+        return items.filter { it.favorite }
+    }
+}
+
+
+abstract class BaseItemsAdapter: RecyclerView.Adapter<BaseItemsAdapter.ItemViewHolder>() {
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
+        val itemLayoutView: View =  LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_layout, null)
+        return ItemViewHolder(itemLayoutView)
+    }
+
+    class ItemViewHolder(itemLayoutView: View): RecyclerView.ViewHolder(itemLayoutView) {
+        val title: TextView = itemLayoutView.findViewById(R.id.itemTitle)
+        val description: TextView = itemLayoutView.findViewById(R.id.itemDescription)
+        val favorite: ToggleButton = itemLayoutView.findViewById(R.id.itemFavorite)
+    }
+}
+
+
+open class MainItemsAdapter: BaseItemsAdapter() {
 
     init {
         addToItemsHolder()
@@ -59,12 +81,6 @@ open class MainItemsAdapter: RecyclerView.Adapter<MainItemsAdapter.ItemViewHolde
 
     private fun addToItemsHolder() {
         MainActivity.itemsManager.addAdapter(this)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
-        val itemLayoutView: View =  LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_layout, null)
-        return ItemViewHolder(itemLayoutView)
     }
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
@@ -81,12 +97,6 @@ open class MainItemsAdapter: RecyclerView.Adapter<MainItemsAdapter.ItemViewHolde
     override fun getItemCount(): Int = getItems().size
 
     open fun getItems(): List<ItemData> = MainActivity.itemsManager.getMainItems()
-
-    class ItemViewHolder(itemLayoutView: View): RecyclerView.ViewHolder(itemLayoutView) {
-        val title: TextView = itemLayoutView.findViewById(R.id.itemTitle)
-        val description: TextView = itemLayoutView.findViewById(R.id.itemDescription)
-        val favorite: ToggleButton = itemLayoutView.findViewById(R.id.itemFavorite)
-    }
 }
 
 

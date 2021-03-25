@@ -2,6 +2,7 @@ package com.example.androidkotlin
 
 import android.app.SearchManager
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -136,12 +137,14 @@ class ItemsFragmentsAdapter(activity: MainActivity) : FragmentStateAdapter(activ
 }
 
 
+
 class MainActivity : AppCompatActivity() {
 
     companion object {
         val itemsManager = ItemsManager()
     }
 
+    private var favDataStore: SharedPreferences? = null
     private lateinit var webSocketClient: WebSocketClient
 
     private fun sendMessage() {
@@ -185,6 +188,8 @@ class MainActivity : AppCompatActivity() {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = adapter.fragments[position].tabName
         }.attach()
+
+        favDataStore = getSharedPreferences("test", Context.MODE_PRIVATE)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -202,11 +207,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
+        val kekValue = favDataStore?.getString("kek", "123")
+        Log.d("TEST_TAG", "kekValue: $kekValue")
         super.onResume()
         initWebSocket()
     }
 
     override fun onPause() {
+        val editor = favDataStore?.edit();
+        editor?.putString("kek", "lol");
+        editor?.apply();
         super.onPause()
         webSocketClient.close()
     }

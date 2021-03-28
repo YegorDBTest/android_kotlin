@@ -15,33 +15,10 @@ import com.android.volley.toolbox.Volley
 import org.json.JSONObject
 
 
-class SearchItemsManager: BaseItemsManager() {
-
-    private var items = mutableListOf<ItemData>()
-
-    fun getItems(): MutableList<ItemData> {
-        return items
-    }
-
-    fun setItems(newItems: MutableList<ItemData>) {
-        items = newItems
-        this.refreshAdapters()
-    }
-}
-
-
 class SearchItemsAdapter: BaseItemsAdapter() {
 
-    init {
-        addToItemsHolder()
-    }
-
-    private fun addToItemsHolder() {
-        SearchableActivity.itemsManager.addAdapter(this)
-    }
-
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
-        val item = SearchableActivity.itemsManager.getItems()[position]
+        val item = SearchableActivity.items[position]
         holder.title.text = item.title
         holder.description.text = item.description
         holder.favorite.isChecked = item.favorite
@@ -57,14 +34,16 @@ class SearchItemsAdapter: BaseItemsAdapter() {
         }
     }
 
-    override fun getItemCount(): Int = SearchableActivity.itemsManager.getItems().size
+    override fun getItemCount(): Int = SearchableActivity.items.size
 }
 
 
 class SearchableActivity : AppCompatActivity() {
 
+    private lateinit var adapter: SearchItemsAdapter
+
     companion object {
-        val itemsManager = SearchItemsManager()
+        var items = mutableListOf<ItemData>()
     }
 
     private lateinit var queue: RequestQueue
@@ -81,8 +60,9 @@ class SearchableActivity : AppCompatActivity() {
 
         val recyclerView: RecyclerView = findViewById(R.id.itemsRecyclerView)
         val layoutManager: RecyclerView.LayoutManager  = LinearLayoutManager(this)
-        recyclerView.layoutManager = layoutManager;
-        recyclerView.adapter = SearchItemsAdapter();
+        recyclerView.layoutManager = layoutManager
+        adapter = SearchItemsAdapter()
+        recyclerView.adapter = adapter
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -97,9 +77,10 @@ class SearchableActivity : AppCompatActivity() {
             intent.getStringExtra(SearchManager.QUERY)?.also { query ->
 
                 val favorite = MainActivity.itemsManager.getMainItems().any { it.title == query && it.favorite }
-                itemsManager.setItems(MutableList(50) {
+                items = MutableList(50) {
                     ItemData(query, "10$query", favorite)
-                })
+                }
+                adapter.notifyDataSetChanged()
 
                 Log.d("TEST_TAG", "Search query: $query")
                 val url = "https://httpbin.org/get?query=$query"

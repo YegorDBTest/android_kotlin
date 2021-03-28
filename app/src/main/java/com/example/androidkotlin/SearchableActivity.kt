@@ -29,7 +29,7 @@ class SearchItemsAdapter: BaseItemsAdapter() {
                 changed = true
             }
             if (changed) {
-                MainActivity.itemsManager.refreshAdapters()
+                MainActivity.adaptersManager.refresh()
             }
         }
     }
@@ -76,7 +76,7 @@ class SearchableActivity : AppCompatActivity() {
         if (intent.action == Intent.ACTION_SEARCH) {
             intent.getStringExtra(SearchManager.QUERY)?.also { query ->
 
-                val favorite = MainActivity.itemsManager.getMainItems().any { it.title == query && it.favorite }
+                val favorite = MainActivity.itemsManager.isFavoriteItem(query)
                 items = MutableList(50) {
                     ItemData(query, "10$query", favorite)
                 }

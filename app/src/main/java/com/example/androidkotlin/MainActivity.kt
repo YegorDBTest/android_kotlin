@@ -26,15 +26,15 @@ import javax.net.ssl.SSLSocketFactory
 data class ItemData(var title: String, var description: String, var favorite: Boolean)
 
 
-abstract class BaseItemsManager {
+class AdaptersManager {
 
     private var itemsAdapters = mutableListOf<BaseItemsAdapter>()
 
-    fun addAdapter(adapter: BaseItemsAdapter) {
+    fun add(adapter: BaseItemsAdapter) {
         itemsAdapters.add(adapter)
     }
 
-    fun refreshAdapters() {
+    fun refresh() {
         for (adapter in itemsAdapters) {
             adapter.notifyDataSetChanged()
         }
@@ -42,18 +42,23 @@ abstract class BaseItemsManager {
 }
 
 
-class ItemsManager: BaseItemsManager() {
+class ItemsManager {
 
     private var items = MutableList(50) {
-        ItemData(it.toString(), (it + 100).toString(), it % 2 == 1)
+        it.toString() to ItemData(it.toString(), (it + 100).toString(), it % 2 == 1)
+    }.toMap()
+
+    fun isFavoriteItem(key: String): Boolean {
+        val item = items[key]
+        return item != null && item.favorite
     }
 
-    fun getMainItems(): MutableList<ItemData> {
-        return items
+    fun getMainItems(): List<ItemData> {
+        return items.values.toList()
     }
 
     fun getFavoriteItems(): List<ItemData> {
-        return items.filter { it.favorite }
+        return items.filterValues { it.favorite }.values.toList()
     }
 }
 
@@ -81,7 +86,7 @@ open class MainItemsAdapter: BaseItemsAdapter() {
     }
 
     private fun addToItemsHolder() {
-        MainActivity.itemsManager.addAdapter(this)
+        MainActivity.adaptersManager.add(this)
     }
 
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
@@ -91,7 +96,7 @@ open class MainItemsAdapter: BaseItemsAdapter() {
         holder.favorite.isChecked = item.favorite
         holder.favorite.setOnClickListener {
             item.favorite = holder.favorite.isChecked
-            MainActivity.itemsManager.refreshAdapters()
+            MainActivity.adaptersManager.refresh()
         }
     }
 
@@ -117,8 +122,8 @@ open class ItemsFragment(private val adapter: MainItemsAdapter) : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val recyclerView: RecyclerView = view.findViewById(R.id.itemsRecyclerView)
         val layoutManager: RecyclerView.LayoutManager  = LinearLayoutManager(view.context)
-        recyclerView.layoutManager = layoutManager;
-        recyclerView.adapter = adapter;
+        recyclerView.layoutManager = layoutManager
+        recyclerView.adapter = adapter
     }
 }
 
@@ -142,39 +147,40 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         val itemsManager = ItemsManager()
+        val adaptersManager = AdaptersManager()
     }
 
     private var favDataStore: SharedPreferences? = null
-    private lateinit var webSocketClient: WebSocketClient
-
-    private fun sendMessage() {
-        webSocketClient.send("lol")
-    }
-
-    private fun initWebSocket() {
-        val uri = URI("wss://echo.websocket.org/")
-        webSocketClient = object : WebSocketClient(uri) {
-            override fun onOpen(handshakedata: ServerHandshake?) {
-                Log.d("TEST_TAG", "onOpen")
-                sendMessage()
-            }
-
-            override fun onMessage(message: String?) {
-                Log.d("TEST_TAG", "onMessage: $message")
-            }
-
-            override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                Log.d("TEST_TAG", "onClose, code: $code, reason $reason")
-            }
-
-            override fun onError(ex: Exception?) {
-                Log.e("TEST_TAG", "onError: ${ex?.message}")
-            }
-        }
-        val socketFactory: SSLSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
-        webSocketClient.setSocketFactory(socketFactory)
-        webSocketClient.connect()
-    }
+//    private lateinit var webSocketClient: WebSocketClient
+//
+//    private fun sendMessage() {
+//        webSocketClient.send("lol")
+//    }
+//
+//    private fun initWebSocket() {
+//        val uri = URI("wss://echo.websocket.org/")
+//        webSocketClient = object : WebSocketClient(uri) {
+//            override fun onOpen(handshakedata: ServerHandshake?) {
+//                Log.d("TEST_TAG", "onOpen")
+//                sendMessage()
+//            }
+//
+//            override fun onMessage(message: String?) {
+//                Log.d("TEST_TAG", "onMessage: $message")
+//            }
+//
+//            override fun onClose(code: Int, reason: String?, remote: Boolean) {
+//                Log.d("TEST_TAG", "onClose, code: $code, reason $reason")
+//            }
+//
+//            override fun onError(ex: Exception?) {
+//                Log.e("TEST_TAG", "onError: ${ex?.message}")
+//            }
+//        }
+//        val socketFactory: SSLSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
+//        webSocketClient.setSocketFactory(socketFactory)
+//        webSocketClient.connect()
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -210,7 +216,7 @@ class MainActivity : AppCompatActivity() {
         val kekValue = favDataStore?.getString("kek", "123")
         Log.d("TEST_TAG", "kekValue: $kekValue")
         super.onResume()
-        initWebSocket()
+//        initWebSocket()
     }
 
     override fun onPause() {
@@ -218,6 +224,6 @@ class MainActivity : AppCompatActivity() {
         editor?.putString("kek", "lol");
         editor?.apply();
         super.onPause()
-        webSocketClient.close()
+//        webSocketClient.close()
     }
 }

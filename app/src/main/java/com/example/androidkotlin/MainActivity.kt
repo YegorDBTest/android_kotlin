@@ -18,12 +18,21 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
+import org.json.JSONObject
 import java.lang.Exception
 import java.net.URI
 import javax.net.ssl.SSLSocketFactory
 
 
-data class ItemData(var title: String, var description: String, var favorite: Boolean)
+data class ItemData(var title: String, var description: String, var favorite: Boolean) {
+    fun toJson(): JSONObject {
+        val jsn = JSONObject()
+        jsn.put("title", this.title)
+        jsn.put("description", this.description)
+        jsn.put("favorite", this.favorite)
+        return jsn
+    }
+}
 
 
 class AdaptersManager {
@@ -44,9 +53,39 @@ class AdaptersManager {
 
 class ItemsManager {
 
-    private var items = MutableList(50) {
-        it.toString() to ItemData(it.toString(), (it + 100).toString(), it % 2 == 1)
-    }.toMap()
+    private var items =  mutableMapOf<String, ItemData>()
+
+    fun initialize(itemsJsonString: String?) {
+        if (itemsJsonString == null) {
+            createItems()
+        } else {
+            try {
+                createItemsFromJsonString(itemsJsonString)
+            } catch (e: Exception) {
+                Log.e("TEST_TAG", "Fail ($e) to get items data from json $itemsJsonString")
+                createItems()
+            }
+        }
+    }
+
+    private fun createItems() {
+        items = mutableMapOf()
+        for (i in 0..50) {
+            items[i.toString()] = ItemData(i.toString(), (i + 100).toString(), false)
+        }
+    }
+
+    private fun createItemsFromJsonString(itemsJsonString: String) {
+        val jsn = JSONObject(itemsJsonString)
+        for (key in jsn.keys()) {
+            val d = jsn.getJSONObject(key)
+            items[key] = ItemData(
+                d.getString("title"),
+                d.getString("description"),
+                d.getBoolean("favorite"),
+            )
+        }
+    }
 
     fun isFavoriteItem(key: String): Boolean {
         val item = items[key]
@@ -59,6 +98,14 @@ class ItemsManager {
 
     fun getFavoriteItems(): List<ItemData> {
         return items.filterValues { it.favorite }.values.toList()
+    }
+
+    fun toJsonString() : String {
+        val jsn = JSONObject()
+        for (e in items.entries) {
+            jsn.put(e.key, e.value.toJson())
+        }
+        return jsn.toString()
     }
 }
 
@@ -195,7 +242,9 @@ class MainActivity : AppCompatActivity() {
             tab.text = adapter.fragments[position].tabName
         }.attach()
 
-        favDataStore = getSharedPreferences("test", Context.MODE_PRIVATE)
+        val itemsDataStore = getSharedPreferences("data", Context.MODE_PRIVATE)
+        val itemsJsonString = itemsDataStore?.getString("items", null)
+        itemsManager.initialize(itemsJsonString)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -212,18 +261,19 @@ class MainActivity : AppCompatActivity() {
         return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onResume() {
-        val kekValue = favDataStore?.getString("kek", "123")
-        Log.d("TEST_TAG", "kekValue: $kekValue")
-        super.onResume()
-//        initWebSocket()
+    override fun onStop() {
+        val itemsDataStore = getSharedPreferences("data", Context.MODE_PRIVATE)
+        val editor = itemsDataStore?.edit();
+        editor?.putString("items", itemsManager.toJsonString());
+        editor?.apply();
+        super.onStop()
     }
 
-    override fun onPause() {
-        val editor = favDataStore?.edit();
-        editor?.putString("kek", "lol");
-        editor?.apply();
-        super.onPause()
+//    override fun onResume() {
+//        initWebSocket()
+//    }
+//
+//    override fun onPause() {
 //        webSocketClient.close()
-    }
+//    }
 }
